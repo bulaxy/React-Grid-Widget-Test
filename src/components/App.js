@@ -1,8 +1,11 @@
 import GridContentLayout from "./GridContentLayout";
+import {  ReactGridProvider } from "../contexts/ReactGridContext"
 
 function App() {
   return (<>
-    <GridContentLayout />
+    <ReactGridProvider>
+      <GridContentLayout />
+    </ReactGridProvider>
   </>
   );
 }
