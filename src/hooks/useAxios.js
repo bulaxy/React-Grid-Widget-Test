@@ -1,11 +1,12 @@
-import useAsync from "../useAsync"
+import { useState } from "react"
 import axios from 'axios'
+import useUpdateEffect from "./useUpdateEffect";
 
-export const useAxios = (url,method, payload,dependency) => {
+export const useAxios = (url, method, payload, dependency) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
+  useUpdateEffect(() => {
     axios
       .get(url, payload)
       .then(response => setData(response.data))

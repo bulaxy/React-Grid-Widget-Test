@@ -1,10 +1,13 @@
-import React, { useContext, useState } from "react"
+import React, { useContext, useState, useEffect } from "react"
 import useDebounce from "../hooks/useDebounce"
 import useLocalStorage from "../hooks/useLocalStorage"
+import { TRUEWAY_GEOCODE, TRUEWAY_MATRIX } from "../constants/apiConstants"
+import { useAxios } from '../hooks/useAxios'
+import useUpdateEffect from "../hooks/useUpdateEffect"
 
-const c = React.createContext()
+const DistanceMatrixContext = React.createContext()
 
-export const useReactGridContext = () => {
+export const useDistanceMatrixContext = () => {
     return useContext(DistanceMatrixContext)
 }
 
@@ -20,7 +23,7 @@ export const DistanceMatrixProvider = ({ children }) => {
         }
     }, searchLocation)
 
-    const { data: matrixData, error: matrixError, loading: matrixLoading } = useAxios(TRUEWAY_GEOCODE.url, 'GET', {
+    const { data: matrixData, error: matrixError, loading: matrixLoading } = useAxios(TRUEWAY_MATRIX.url, 'GET', {
         ...TRUEWAY_GEOCODE.header,
         params: {
             origins: locations.map(location => location.lat + ',' + location.lng).join(';'),
@@ -28,7 +31,7 @@ export const DistanceMatrixProvider = ({ children }) => {
         }
     }, locations)
 
-    useEffect(() => {
+    useUpdateEffect(() => {
         setLocations(prev => [...prev, geocodeData])
     }, [geocodeData])
 
@@ -51,8 +54,8 @@ export const DistanceMatrixProvider = ({ children }) => {
                 addLocation,
                 removeLocation,
                 matrixData,
-                error:geoError||matrixError,
-                loading:geoLoading||matrixLoading
+                error: geoError || matrixError,
+                loading: geoLoading || matrixLoading
             }}
         >
             {children}

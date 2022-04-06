@@ -1,4 +1,5 @@
 import TableWidget from "./TableWidget"
+import DistanceMatrixWidget from "./DistanceMatrixWidget"
 import Card from 'react-bootstrap/Card'
 import CloseButton from 'react-bootstrap/CloseButton'
 import { useReactGridContext } from "../../contexts/ReactGridContext"
@@ -8,12 +9,14 @@ export default function WidgetComponents(props) {
     const { editMode } = useReactGridContext()
 
     const components = {
-        TableWidget: TableWidget
+        TableWidget: TableWidget,
+        DistanceMatrixWidget: DistanceMatrixWidget
     }
 
     const Widget = components[widgetName]
 
     if (setting?.header || editMode) {
+
         return <>
             <Card.Header className='d-flex justify-content-between align-items-center pb-0'>
                 <Card.Title>{setting.header}</Card.Title>
