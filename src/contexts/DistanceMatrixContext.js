@@ -11,29 +11,39 @@ export const useDistanceMatrixContext = () => {
     return useContext(DistanceMatrixContext)
 }
 
-export const DistanceMatrixProvider = ({ children }) => {
+export const DistanceMatrixProvider = ({ children, extraParams }) => {
     const [locations, setLocations] = useState([])
+    const [matrixData, setMatrixdata] = useState({})
     const [searchLocation, setSearchLocation] = useState()
+    const [view, setView] = useState('')
 
-    const { data: geocodeData, error: geoError, loading: geoLoading } = useAxios(TRUEWAY_GEOCODE.url, 'GET', {
-        ...TRUEWAY_GEOCODE.header,
+    const { data: geocodeDataResult, error: geoError, loading: geoLoading } = useAxios(TRUEWAY_GEOCODE.url, 'GET', {
+        headers: TRUEWAY_GEOCODE.headers,
         params: {
-            origins: locations.map(location => location.lat + ',' + location.lng).join(';'),
-            destinations: locations.map(location => location.lat + ',' + location.lng).join(';')
+            address: searchLocation,
+            language: 'en'
         }
     }, searchLocation)
 
-    const { data: matrixData, error: matrixError, loading: matrixLoading } = useAxios(TRUEWAY_MATRIX.url, 'GET', {
-        ...TRUEWAY_GEOCODE.header,
+    const { data: matrixDataResult, error: matrixError, loading: matrixLoading } = useAxios(TRUEWAY_MATRIX.url, 'GET', {
+        headers: TRUEWAY_MATRIX.headers,
         params: {
-            origins: locations.map(location => location.lat + ',' + location.lng).join(';'),
-            destinations: locations.map(location => location.lat + ',' + location.lng).join(';')
+            origins: locations.map(location => location.location.lat + ',' + location.location.lng).join(';'),
+            destinations: locations.map(location => location.location.lat + ',' + location.location.lng).join(';')
         }
-    }, locations)
+    }, view?.includes('Matrix'))
 
     useUpdateEffect(() => {
-        setLocations(prev => [...prev, geocodeData])
-    }, [geocodeData])
+        if (geocodeDataResult?.data?.results) {
+            setLocations(prev => [...prev, ...geocodeDataResult.data.results])
+        }
+    }, [geocodeDataResult])
+
+    useUpdateEffect(() => {
+        if (matrixDataResult?.data) {
+            setMatrixdata(matrixDataResult.data)
+        }
+    }, [matrixDataResult])
 
     const addLocation = (string) => {
         setSearchLocation(string)
@@ -54,8 +64,10 @@ export const DistanceMatrixProvider = ({ children }) => {
                 addLocation,
                 removeLocation,
                 matrixData,
-                error: geoError || matrixError,
-                loading: geoLoading || matrixLoading
+                // error: geoError || matrixError,
+                // loading: geoLoading || matrixLoading,
+                view,
+                setView,
             }}
         >
             {children}

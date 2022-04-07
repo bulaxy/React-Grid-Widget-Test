@@ -28,8 +28,8 @@ export default function GridContentLayout() {
             <div key={`Grid-Item-2`} data-grid={{ w: 3, h: 5, x: 0, y: 2 }} className="card" style={{ height: '100%', overflow: 'hidden' }}>
                 <WidgetComponents widgetName={'TableWidget'} setting={{ header: '123' }} />
             </div> */}
-            <div key={`Grid-Item-3`} data-grid={{ w: 3, h: 5, x: 0, y: 2 }} className="card" style={{ height: '100%', overflow: 'hidden' }}>
-                <WidgetComponents widgetName={'DistanceMatrixWidget'} setting={{ header: '123' }} />
+            <div key={`Grid-Item-3`} data-grid={{ w: 4, h: 20, x: 0, y: 2 }} className="card" style={{ height: '100%', overflow: 'hidden' }}>
+                <WidgetComponents widgetName={'DistanceMatrixWidget'} setting={{ header: 'Distance Matrix' }} />
             </div>
         </ResponsiveReactGridLayout>
     );
