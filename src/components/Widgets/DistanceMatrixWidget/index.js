@@ -30,9 +30,9 @@ function DistanceMatrixDetail() {
             Matrix View (Duration)
         </ToggleButton>
     </ButtonGroup>
-        {view == 'locationTable' && <LocationTable />}
-        {view == 'distanceMatrixTable' && <MatrixTable type='distances' />}
-        {view == 'durationMatrixTable' && <MatrixTable type='durations' />}
+        {view === 'locationTable' && <LocationTable />}
+        {view === 'distanceMatrixTable' && <MatrixTable type='distances' />}
+        {view === 'durationMatrixTable' && <MatrixTable type='durations' />}
     </>
 }
 

@@ -1,15 +1,16 @@
-// Debounce to delay request, to not waste resources of constant update, useful for API calls like google geo and such.
-export const debounce = (cb, delay = 500) => {
-    let timeout;
-    
-    return (...args) => {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => cb(...args), delay)
-    }
+const groupBy = (xs, key) => {
+    return xs.reduce((rv, x) => {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
+};
+
+const mapToKey = (arr, key) => {
+    return arr.map(o => o[key])
 }
 
 // Throttle to make sure it doesnt make too many calls and there will be a delay before it can be called again
-export const throttle = (cb, delay = 500) => {
+const throttle = (cb, delay = 500) => {
     let pending = false
     let pendingArgs
 
@@ -34,4 +35,9 @@ export const throttle = (cb, delay = 500) => {
 
         setTimeout(timeoutFunc, delay)
     }
+}
+
+export {
+    groupBy,
+    mapToKey,
 }

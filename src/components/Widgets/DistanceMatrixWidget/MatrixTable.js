@@ -1,22 +1,20 @@
 import { useState } from "react"
 import { FormControl, InputGroup, Table } from "react-bootstrap"
-import { IconBase } from "react-icons"
 import { useDistanceMatrixContext } from "../../../contexts/DistanceMatrixContext"
-import useDebounce from "../../../hooks/useDebounce"
+import { mapToKey } from "../../../utils/general"
+import { calMedian } from "../../../utils/statsHelpers"
 
 export default function LocationTable({ type }) {
-    const { locations, matrixData } = useDistanceMatrixContext()
-    const [inputValue, setInputValue] = useState()
+    const { locations, matrixData,medianInfo } = useDistanceMatrixContext()
 
     return (
         <>
-            <FormControl onChange={event => setInputValue(event.target.value)} />
             <Table striped bordered hover>
                 <thead>
                     <tr>
                         <th />
                         {locations.map(location => <th key={`matrixTableHeaderKey-${location.location.lat}-${location.location.lng}`}>{location.address}</th>)}
-                        <th>Total</th>
+                        <th>Total {type}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,6 +31,11 @@ export default function LocationTable({ type }) {
                     )}
                 </tbody>
             </Table>
+            Based on Median, the median lat and lng are
+            Lat:{}
+            Lng:{calMedian(locations.map(location => location.location.lng))}
+
+            Closest To ()
         </>
     )
 }

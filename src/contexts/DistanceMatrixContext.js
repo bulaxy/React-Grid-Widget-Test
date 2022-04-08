@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from "react"
-import useDebounce from "../hooks/useDebounce"
 import useLocalStorage from "../hooks/useLocalStorage"
 import { TRUEWAY_GEOCODE, TRUEWAY_MATRIX } from "../constants/apiConstants"
 import { useAxios } from '../hooks/useAxios'
 import useUpdateEffect from "../hooks/useUpdateEffect"
+import { v4 as uuid } from 'uuid';
 
 const DistanceMatrixContext = React.createContext()
 
@@ -11,12 +11,21 @@ export const useDistanceMatrixContext = () => {
     return useContext(DistanceMatrixContext)
 }
 
+const getDistance = (lat1, lng1, lat2, lng2) => {
+    const lat = lat1 - lat2
+    const lng = lng1 - lng2
+    return (lat ** 2 + lng ** 2) ** (1 / 2)
+}
+
 export const DistanceMatrixProvider = ({ children, extraParams }) => {
-    const [locations, setLocations] = useState([])
+    /* Use localstorage to store the location infos. */
+    const [locations, setLocations] = useLocalStorage([])
     const [matrixData, setMatrixdata] = useState({})
     const [searchLocation, setSearchLocation] = useState()
     const [view, setView] = useState('')
+    const [medianInfo, setMedianInfo] = useState({})
 
+    /* Get Data from API when search location updated */
     const { data: geocodeDataResult, error: geoError, loading: geoLoading } = useAxios(TRUEWAY_GEOCODE.url, 'GET', {
         headers: TRUEWAY_GEOCODE.headers,
         params: {
@@ -25,19 +34,30 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
         }
     }, searchLocation)
 
+    /*
+        Dependency being true or false, so switching between the 2 matrix tab shouldnt require a reload, 
+        but switching between the table and matrix table will. Might worth considering only reload if locations changes
+        and tab switching. 
+
+        When transfering this to server side API call, Also worth considering using redis to check whether 
+        the same call have been made in the last 20 minutes, and use the same result. 
+        But only use if called within 20 minutes since traffic informations might update. 
+    */
+
     const { data: matrixDataResult, error: matrixError, loading: matrixLoading } = useAxios(TRUEWAY_MATRIX.url, 'GET', {
         headers: TRUEWAY_MATRIX.headers,
         params: {
             origins: locations.map(location => location.location.lat + ',' + location.location.lng).join(';'),
             destinations: locations.map(location => location.location.lat + ',' + location.location.lng).join(';')
         }
-    }, view?.includes('Matrix'))
+    }, [view?.includes('Matrix')])
 
     useUpdateEffect(() => {
         if (geocodeDataResult?.data?.results) {
-            setLocations(prev => [...prev, ...geocodeDataResult.data.results])
+            // if no result,  dont update, otherwise store the data and assign uuid to it. 
+            setLocations(prev => [...prev, ...geocodeDataResult.data.results.map(o => ({ ...o, uuid: uuid() }))])
         }
-    }, [geocodeDataResult])
+    }, [geocodeDataResult,])
 
     useUpdateEffect(() => {
         if (matrixDataResult?.data) {
@@ -45,13 +65,16 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
         }
     }, [matrixDataResult])
 
-    const addLocation = (string) => {
-        setSearchLocation(string)
-        // useDebounce((string) => {
-        //     if (string) {
-        //     }
-        // }, 1000, string)
-    }
+    useUpdateEffect(() => {
+        setMedianInfo(prev => {
+            return {
+                ...prev,
+                lat: calMedian(locations.map(location => location.location.lat)),
+                lng: calMedian(locations.map(location => location.location.lng)),
+                closest: getDistance()
+            }
+        })
+    }, [locations])
 
     const removeLocation = (index) => {
         setLocations(prev => prev.filter((o, idx) => idx !== index))
@@ -61,11 +84,11 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
         <DistanceMatrixContext.Provider
             value={{
                 locations,
-                addLocation,
+                addLocation: setSearchLocation,
                 removeLocation,
                 matrixData,
-                // error: geoError || matrixError,
-                // loading: geoLoading || matrixLoading,
+                error: geoError || matrixError,
+                loading: geoLoading || matrixLoading,
                 view,
                 setView,
             }}
