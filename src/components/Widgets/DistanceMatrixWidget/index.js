@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ButtonGroup, FormControl, InputGroup, Table, ToggleButton } from "react-bootstrap"
+import { ButtonGroup, FormControl, InputGroup, Table, ToggleButton, Nav } from "react-bootstrap"
 import LocationTable from "./LocationTable"
 import MatrixTable from "./MatrixTable"
 import { DistanceMatrixProvider, useDistanceMatrixContext } from "../../../contexts/DistanceMatrixContext"
@@ -8,10 +8,10 @@ function DistanceMatrixDetail() {
     const { view, setView } = useDistanceMatrixContext()
 
     return <><ButtonGroup>
-        <ToggleButton
+        {/* <ToggleButton
             type="radio"
             checked={'locationTable' === view}
-            onClick={() => setView('locationTable')}
+            onClick={() => }
         >
             Location Table
         </ToggleButton>
@@ -28,7 +28,18 @@ function DistanceMatrixDetail() {
             onClick={() => setView('durationMatrixTable')}
         >
             Matrix View (Duration)
-        </ToggleButton>
+        </ToggleButton> */}
+        <Nav variant="tabs" defaultActiveKey="/locationTable" onSelect={setView}>
+            <Nav.Item >
+                <Nav.Link eventKey="locationTable">Location Table</Nav.Link>
+            </Nav.Item>
+            <Nav.Item >
+                <Nav.Link eventKey="distanceMatrixTable">Matrix View (Distance)</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link eventKey="durationMatrixTable">Matrix View (Duration)</Nav.Link>
+            </Nav.Item>
+        </Nav>
     </ButtonGroup>
         {view === 'locationTable' && <LocationTable />}
         {view === 'distanceMatrixTable' && <MatrixTable type='distances' />}

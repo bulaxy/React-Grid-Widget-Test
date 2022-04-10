@@ -4,6 +4,7 @@ import { TRUEWAY_GEOCODE, TRUEWAY_MATRIX } from "../constants/apiConstants"
 import { useAxios } from '../hooks/useAxios'
 import useUpdateEffect from "../hooks/useUpdateEffect"
 import { v4 as uuid } from 'uuid';
+import { calMedian } from "../utils/statsHelpers"
 
 const DistanceMatrixContext = React.createContext()
 
@@ -19,9 +20,9 @@ const getDistance = (lat1, lng1, lat2, lng2) => {
 
 export const DistanceMatrixProvider = ({ children, extraParams }) => {
     /* Use localstorage to store the location infos. */
-    const [locations, setLocations] = useLocalStorage([])
+    const [locations, setLocations] = useLocalStorage('DistanceMatrixLocations', [])
     const [matrixData, setMatrixdata] = useState({})
-    const [searchLocation, setSearchLocation] = useState()
+    const [searchLocation, setSearchLocation] = useState(false)
     const [view, setView] = useState('')
     const [medianInfo, setMedianInfo] = useState({})
 
@@ -32,7 +33,7 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
             address: searchLocation,
             language: 'en'
         }
-    }, searchLocation)
+    }, [searchLocation])
 
     /*
         Dependency being true or false, so switching between the 2 matrix tab shouldnt require a reload, 
@@ -47,8 +48,8 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
     const { data: matrixDataResult, error: matrixError, loading: matrixLoading } = useAxios(TRUEWAY_MATRIX.url, 'GET', {
         headers: TRUEWAY_MATRIX.headers,
         params: {
-            origins: locations.map(location => location.location.lat + ',' + location.location.lng).join(';'),
-            destinations: locations.map(location => location.location.lat + ',' + location.location.lng).join(';')
+            origins: locations?.map(location => location?.location.lat + ',' + location?.location.lng).join(';'),
+            destinations: locations?.map(location => location?.location.lat + ',' + location?.location.lng).join(';')
         }
     }, [view?.includes('Matrix')])
 
@@ -57,7 +58,7 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
             // if no result,  dont update, otherwise store the data and assign uuid to it. 
             setLocations(prev => [...prev, ...geocodeDataResult.data.results.map(o => ({ ...o, uuid: uuid() }))])
         }
-    }, [geocodeDataResult,])
+    }, [geocodeDataResult])
 
     useUpdateEffect(() => {
         if (matrixDataResult?.data) {
@@ -65,19 +66,29 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
         }
     }, [matrixDataResult])
 
-    useUpdateEffect(() => {
+    useEffect(() => {
+        const lat = calMedian(locations.map(location => location?.location.lat))
+        const lng = calMedian(locations.map(location => location?.location.lng))
+        const distances = locations?.map(location => getDistance(lat, lng, location?.location.lat, location?.location.lng))
+        const low = distances?.sort()?.[0]
+
         setMedianInfo(prev => {
             return {
                 ...prev,
-                lat: calMedian(locations.map(location => location.location.lat)),
-                lng: calMedian(locations.map(location => location.location.lng)),
-                closest: getDistance()
+                lat,
+                lng,
+                closest: locations[distances.indexOf(low)]
             }
         })
     }, [locations])
 
-    const removeLocation = (index) => {
-        setLocations(prev => prev.filter((o, idx) => idx !== index))
+    const removeLocation = (uuid) => {
+        setLocations(prev => prev.filter(o => uuid !== o.uuid))
+    }
+
+    // two possible fields, one is whether the person is willing to host, the other being whether that person will be going to the gathering
+    const setLocationActive = (uuid, field) => {
+        setLocations(prev => prev.filter(o => uuid !== o.uuid))
     }
 
     return (
@@ -91,6 +102,7 @@ export const DistanceMatrixProvider = ({ children, extraParams }) => {
                 loading: geoLoading || matrixLoading,
                 view,
                 setView,
+                medianInfo
             }}
         >
             {children}

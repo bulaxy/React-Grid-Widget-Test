@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import axios from 'axios'
 import useUpdateEffect from "./useUpdateEffect";
 
@@ -186,12 +186,14 @@ export const useAxios = (url, method, payload, dependency) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useUpdateEffect(() => {
-    // if (url === 'https://trueway-matrix.p.rapidapi.com/CalculateDrivingMatrix') {
-    //   setData({ ...matrixResult, timestamp: new Date })
-    // } else {
-    //   setData({ ...geoResult, timestamp: new Date })
-    // }
+  useEffect(() => {
+    if (!(typeof dependency?.[0] === 'boolean' && dependency?.[0] === false)) {
+      if (url === 'https://trueway-matrix.p.rapidapi.com/CalculateDrivingMatrix') {
+        setData({ ...matrixResult, timestamp: new Date })
+      } else {
+        setData({ ...geoResult, timestamp: new Date })
+      }
+    }
     // axios
     //   .request({
     //     method,
@@ -203,7 +205,7 @@ export const useAxios = (url, method, payload, dependency) => {
     //   })
     //   .catch(error => setError(error.message))
     //   .finally(() => setLoading(true));
-  }, [dependency]);
+  }, dependency);
 
   return { data, error, loading };
 };

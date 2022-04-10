@@ -4,38 +4,39 @@ import { useDistanceMatrixContext } from "../../../contexts/DistanceMatrixContex
 import { mapToKey } from "../../../utils/general"
 import { calMedian } from "../../../utils/statsHelpers"
 
-export default function LocationTable({ type }) {
-    const { locations, matrixData,medianInfo } = useDistanceMatrixContext()
-
+export default function MatrixTable({ type }) {
+    const { locations, matrixData, medianInfo } = useDistanceMatrixContext()
     return (
         <>
-            <Table striped bordered hover>
+            <Table responsive striped bordered hover>
                 <thead>
                     <tr>
                         <th />
-                        {locations.map(location => <th key={`matrixTableHeaderKey-${location.location.lat}-${location.location.lng}`}>{location.address}</th>)}
+                        {locations?.map((location, i) => <th key={`matrixTableHeaderKey-${i}-${location.location.lat}-${location.location.lng}`}>{location.address}</th>)}
                         <th>Total {type}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {locations.map((location, i) =>
-                        <tr key={`matrixTableRowKey-${location.location.lat}-${location.location.lng}`}>
+                    {locations?.map((location, i) =>
+                        <tr key={`matrixTableRowKey${i}-${location.location.lat}-${location.location.lng}`}>
                             <td>{location.address}</td>
-                            {matrixData?.[type]?.[i].map(value =>
+                            {matrixData?.[type]?.[i]?.map(value =>
                                 <td>
                                     {value}
                                 </td>
                             )}
-                            <td>{matrixData?.[type]?.[i].reduce((a, b) => a + b, 0)}</td>
+                            <td>{matrixData?.[type]?.[i]?.reduce((a, b) => a + b, 0)}</td>
                         </tr>
                     )}
                 </tbody>
             </Table>
             Based on Median, the median lat and lng are
-            Lat:{}
-            Lng:{calMedian(locations.map(location => location.location.lng))}
-
-            Closest To ()
+            <br />
+            Lat:{medianInfo.lat || 'N/A'}
+            <br />
+            Lng:{medianInfo.lng || 'N/A'}
+            <br />
+            Closest To ({medianInfo.closest?.address})
         </>
     )
 }

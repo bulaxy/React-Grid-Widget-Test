@@ -31,7 +31,7 @@ const throttle = (cb, delay = 500) => {
             return
         }
         cb(...args)
-        pending = ture
+        pending = true
 
         setTimeout(timeoutFunc, delay)
     }
